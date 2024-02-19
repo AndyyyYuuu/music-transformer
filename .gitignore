@@ -166,3 +166,5 @@ cython_debug/
 .idea/music-transformer.iml
 .idea/vcs.xml
 midi_processor/__pycache__/*
+
+dataset/*
