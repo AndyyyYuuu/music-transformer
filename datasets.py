@@ -30,5 +30,5 @@ class MidiDataset:
         return len(self.data_x)
 
     def __getitem__(self, idx):
-        return [self.data_x[idx], self.data_y[idx]]
-
+        return [torch.tensor(self.data_x[idx]).to(dtype=torch.float32),
+                torch.tensor(self.data_y[idx]).to(dtype=torch.float32)]
