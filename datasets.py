@@ -25,10 +25,13 @@ class MidiDataset:
                 seq_out = encoded_midi[note_i + self.seq_length]
                 self.data_x.append([note for note in seq_in])
                 self.data_y.append(seq_out)
+        self.data_x = torch.tensor(self.data_x, dtype=torch.float32).reshape(len(self.data_x), self.seq_length, 1)
+        self.data_y = torch.tensor(self.data_y)
 
     def __len__(self):
         return len(self.data_x)
 
     def __getitem__(self, idx):
-        return [torch.tensor(self.data_x[idx]).to(dtype=torch.float32),
-                torch.tensor(self.data_y[idx]).to(dtype=torch.float32)]
+        return [self.data_x[idx], self.data_y[idx]]
+        #return [torch.tensor(self.data_x[idx], dtype=torch.float32).reshape(len(self), self.seq_length, 1),
+                #torch.tensor(self.data_y[idx], dtype=torch.float32)]
