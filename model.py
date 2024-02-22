@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 
+
 class Composer(torch.nn.Module):
     def __init__(self, num_notes):
         super().__init__()

@@ -27,8 +27,8 @@ print("-- Dataset Info --")
 print(f"Size: {len(dataset)}")
 print(f"\tTrain: {train_size}")
 print(f"\tTest: {test_size}")
-
-composer = model.Composer(32)
+print(dataset.vocab)
+composer = model.Composer(dataset.vocab)
 
 optimizer = torch.optim.Adam(composer.parameters())
 loss_function = torch.nn.CrossEntropyLoss(reduction="sum")

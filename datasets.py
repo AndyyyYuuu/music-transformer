@@ -25,8 +25,12 @@ class MidiDataset:
                 seq_out = encoded_midi[note_i + self.seq_length]
                 self.data_x.append([note for note in seq_in])
                 self.data_y.append(seq_out)
+
         self.data_x = torch.tensor(self.data_x, dtype=torch.float32).reshape(len(self.data_x), self.seq_length, 1)
         self.data_y = torch.tensor(self.data_y)
+        self.vocab = torch.max(self.data_y) + 1
+        self.data_x /= torch.max(self.data_x)
+
 
     def __len__(self):
         return len(self.data_x)
