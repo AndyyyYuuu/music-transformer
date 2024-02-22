@@ -6,6 +6,7 @@ import wandb
 from midi_processor import processor
 import model
 import datasets
+import utils
 
 NUM_EPOCHS = 10
 TRAIN_SPLIT = 0.8
@@ -35,10 +36,13 @@ loss_function = torch.nn.CrossEntropyLoss(reduction="sum")
 for epoch in range(NUM_EPOCHS):
     composer.train()
     loading_iter = iter(train_loader)
-    for i in train_loader:
+    for i in utils.progress_iter(range(len(train_loader)), "Training"):
 
         x_batch, y_batch = next(loading_iter)
-        print(x_batch.size())
-        print(composer(x_batch))
-        exit()
+        y_pred = composer(x_batch)
+        loss = loss_function(y_pred, y_batch)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+    print(y_pred)
 
