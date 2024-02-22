@@ -20,7 +20,7 @@ def checkpoint(best_model, best_loss, epoch):
 
 
 print("Loading dataset...")
-dataset = datasets.MidiDataset("dataset", SEQ_LENGTH)
+dataset = datasets.MidiDataset("dataset", SEQ_LENGTH, subset_prop=0.1)
 
 train_size = int(len(dataset)*TRAIN_SPLIT)
 test_size = len(dataset) - train_size

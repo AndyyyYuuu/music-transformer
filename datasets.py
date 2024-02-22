@@ -7,10 +7,12 @@ import utils
 
 class MidiDataset:
 
-    def __init__(self, files_dir, seq_length):
+    def __init__(self, files_dir, seq_length, subset_prop):
         self.files_dir = files_dir
         self.midi_paths = []
         self.seq_length = seq_length
+
+        self.subset_prop = subset_prop
 
         self.data_x = []
         self.data_y = []
@@ -33,9 +35,14 @@ class MidiDataset:
 
 
     def __len__(self):
-        return len(self.data_x)
+        return int(len(self.data_x)*self.subset_prop)
 
     def __getitem__(self, idx):
         return [self.data_x[idx], self.data_y[idx]]
         #return [torch.tensor(self.data_x[idx], dtype=torch.float32).reshape(len(self), self.seq_length, 1),
                 #torch.tensor(self.data_y[idx], dtype=torch.float32)]
+
+    def shuffle(self):
+        shuffle_indices = torch.randperm(len(self.data_x))
+        self.data_x = self.data_x[shuffle_indices]
+        self.data_y = self.data_y[shuffle_indices]
