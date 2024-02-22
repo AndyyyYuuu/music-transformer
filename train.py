@@ -18,6 +18,20 @@ def checkpoint(best_model, best_loss, epoch):
     torch.save([best_model, best_loss, epoch], SAVE_PATH)
 
 
+# start a new wandb run to track this script
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="music-lstm",
+
+    # track hyperparameters and run metadata
+    config={
+        "architecture": "LSTM",
+        "dataset": "Weimar Jazz Database",
+        "train_split": TRAIN_SPLIT,
+        "sequence_length": SEQ_LENGTH,
+        "epochs": NUM_EPOCHS,
+    }
+)
 
 print("Loading dataset...")
 dataset = datasets.MidiDataset("dataset", SEQ_LENGTH, subset_prop=0.1)
@@ -76,6 +90,7 @@ for epoch in range(NUM_EPOCHS):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        wandb.log({"train_loss": loss})
 
 
 
@@ -92,5 +107,6 @@ for epoch in range(NUM_EPOCHS):
             best_loss = loss
             best_model = composer.state_dict()
         print(f"Loss: {loss}")
+        wandb.log({"valid_loss": loss})
         checkpoint(best_model, best_loss, epoch)
 
