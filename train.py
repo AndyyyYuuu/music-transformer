@@ -68,6 +68,7 @@ if os.path.exists(SAVE_PATH):
         best_model = loaded_best_model
         best_loss = loaded_best_loss
         start_epoch = loaded_epoch+1
+        composer.load_state_dict(best_model)
         print("LOADED MODEL")
         print(f"Epochs to train: {NUM_EPOCHS-start_epoch}")
         print(f"Save path: {SAVE_PATH}")
