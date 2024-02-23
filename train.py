@@ -8,7 +8,7 @@ import model
 import datasets
 import utils
 
-NUM_EPOCHS = 6
+NUM_EPOCHS = 10
 TRAIN_SPLIT = 0.8
 SEQ_LENGTH = 100
 
@@ -58,10 +58,12 @@ loss_function = torch.nn.CrossEntropyLoss(reduction="sum")
 best_model = None
 best_loss = np.inf
 
+start_epoch = 0
+
 # Load checkpoint
 if os.path.exists(SAVE_PATH):
     past_state_dict = torch.load(SAVE_PATH)
-    loaded_best_model, loaded_best_loss, loaded_epoch = past_state_dict
+    loaded_best_model, loaded_vocab, loaded_best_loss, loaded_epoch = past_state_dict
     if loaded_epoch < NUM_EPOCHS-1:
         best_model = loaded_best_model
         best_loss = loaded_best_loss
@@ -80,7 +82,7 @@ else:
 
 
 
-for epoch in range(NUM_EPOCHS):
+for epoch in range(start_epoch, NUM_EPOCHS):
     dataset.shuffle()
     composer.train()
     loading_iter = iter(train_loader)

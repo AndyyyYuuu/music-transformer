@@ -5,11 +5,11 @@ import model
 from midi_processor import processor
 
 PATH = "models/jazz-1.pth"
-SAVE_PATH = "results/jazz-1-1.mid"
+SAVE_PATH = "results/jazz-1-2.mid"
 PROMPTS_PATH = "dataset/CharlieParker_YardbirdSuite_FINAL.mid"
 
 best_model, num_vocab, best_loss, epoch = torch.load(PATH)
-TEMPERATURE = 0.8
+TEMPERATURE = 1.2
 
 # load ascii text and covert to lowercase
 encoded_midi = processor.encode_midi(PROMPTS_PATH)
@@ -20,7 +20,7 @@ rand_start = np.random.randint(0, len(encoded_midi)-prompt_size)
 prompt = encoded_midi[rand_start:rand_start+prompt_size]
 pattern = prompt.copy()
 
-composer = model.Composer()
+composer = model.Composer(num_vocab)
 composer.load_state_dict(best_model)
 composer.eval()
 
