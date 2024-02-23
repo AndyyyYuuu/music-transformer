@@ -30,8 +30,8 @@ class MidiDataset:
 
         self.data_x = torch.tensor(self.data_x, dtype=torch.float32).reshape(len(self.data_x), self.seq_length, 1)
         self.data_y = torch.tensor(self.data_y)
-        self.vocab = torch.max(self.data_y) + 1
-        self.data_x /= torch.max(self.data_x)
+        self.vocab = torch.max(torch.max(self.data_y), torch.max(self.data_x)).to(dtype=torch.int64) + 1
+        self.data_x /= self.vocab
 
 
     def __len__(self):
