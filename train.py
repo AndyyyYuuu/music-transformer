@@ -11,6 +11,7 @@ import utils
 NUM_EPOCHS = 10
 TRAIN_SPLIT = 0.8
 SEQ_LENGTH = 100
+LAYERS = 2
 
 DO_WANDB = True
 
@@ -50,7 +51,7 @@ print(f"Size: {len(dataset)}")
 print(f"\tTrain: {train_size}")
 print(f"\tTest: {test_size}")
 print(dataset.vocab)
-composer = model.Composer(dataset.vocab)
+composer = model.Composer(dataset.vocab, LAYERS)
 
 optimizer = torch.optim.Adam(composer.parameters())
 loss_function = torch.nn.CrossEntropyLoss(reduction="sum")
