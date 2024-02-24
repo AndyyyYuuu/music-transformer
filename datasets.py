@@ -35,7 +35,7 @@ class MidiDataset:
 
 
     def __len__(self):
-        return int(len(self.data_x)*self.subset_prop)
+        return len(self.data_x)
 
     def __getitem__(self, idx):
         return [self.data_x[idx], self.data_y[idx]]

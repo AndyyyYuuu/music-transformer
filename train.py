@@ -1,4 +1,5 @@
 import torch
+import random
 import os
 import numpy as np
 import wandb
@@ -8,14 +9,15 @@ import model
 import datasets
 import utils
 
-NUM_EPOCHS = 10
+NUM_EPOCHS = 20
 TRAIN_SPLIT = 0.8
 SEQ_LENGTH = 100
+SAMPLE_FRACTION = 0.1
 LAYERS = 2
 
 DO_WANDB = True
 
-SAVE_PATH = "models/jazz-1.pth"
+SAVE_PATH = "models/jazz-3.pth"
 
 def checkpoint(data):
     torch.save(data, SAVE_PATH)
@@ -33,6 +35,7 @@ if DO_WANDB:
             "train_split": TRAIN_SPLIT,
             "sequence_length": SEQ_LENGTH,
             "epochs": NUM_EPOCHS,
+            "layers": LAYERS,
         }
     )
 
@@ -43,8 +46,7 @@ train_size = int(len(dataset)*TRAIN_SPLIT)
 test_size = len(dataset) - train_size
 train_set, test_set = torch.utils.data.random_split(dataset, [train_size, test_size])
 
-train_loader = torch.utils.data.DataLoader(train_set, batch_size=32, shuffle=True)
-test_loader = torch.utils.data.DataLoader(test_set, batch_size=32, shuffle=True)
+dataset_indices = list(range(len(dataset)))
 
 print("-- Dataset Info --")
 print(f"Size: {len(dataset)}")
@@ -85,7 +87,14 @@ else:
 
 
 for epoch in range(start_epoch, NUM_EPOCHS):
-    dataset.shuffle()
+
+    random.shuffle(dataset_indices)
+    sample_indices = dataset_indices[:int(len(dataset_indices)*SAMPLE_FRACTION)]
+    train_sampler = torch.utils.data.SubsetRandomSampler(sample_indices[:int(TRAIN_SPLIT*len(sample_indices))])
+    test_sampler = torch.utils.data.SubsetRandomSampler(sample_indices[int(TRAIN_SPLIT*len(sample_indices)):])
+    train_loader = torch.utils.data.DataLoader(dataset, batch_size=32, sampler=train_sampler)
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size=32, sampler=test_sampler)
+
     composer.train()
     loading_iter = iter(train_loader)
     for i in utils.progress_iter(range(len(train_loader)), "Training"):
