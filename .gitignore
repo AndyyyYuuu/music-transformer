@@ -170,3 +170,4 @@ __pycache__/*
 dataset/*
 midi_processor
 wandb/*
+results/*
