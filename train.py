@@ -13,11 +13,12 @@ NUM_EPOCHS = 20
 TRAIN_SPLIT = 0.8
 SEQ_LENGTH = 100
 SAMPLE_FRACTION = 0.1
-LAYERS = 2
+LAYERS = 1
+HIDDEN_SIZE = 512
 
 DO_WANDB = True
 
-SAVE_PATH = "models/jazz-4.pth"
+SAVE_PATH = "models/jazz-5.pth"
 
 def checkpoint(data):
     torch.save(data, SAVE_PATH)
@@ -36,6 +37,7 @@ if DO_WANDB:
             "sequence_length": SEQ_LENGTH,
             "epochs": NUM_EPOCHS,
             "layers": LAYERS,
+            "hidden_size": HIDDEN_SIZE,
         }
     )
 
@@ -54,7 +56,7 @@ print(f"Size: {len(dataset)}")
 print(f"\tTrain: {train_size}")
 print(f"\tTest: {test_size}")
 print(dataset.vocab)
-composer = model.Composer(dataset.vocab, LAYERS)
+composer = model.Composer(dataset.vocab, LAYERS, HIDDEN_SIZE)
 
 optimizer = torch.optim.Adam(composer.parameters())
 loss_function = torch.nn.CrossEntropyLoss(reduction="sum")
@@ -67,15 +69,18 @@ start_epoch = 0
 # Load checkpoint
 if os.path.exists(SAVE_PATH):
     past_state_dict = torch.load(SAVE_PATH)
-    loaded_best_model, loaded_vocab, loaded_best_loss, loaded_epoch = past_state_dict
+    loaded_best_model, loaded_vocab, loaded_best_loss, loaded_epoch, loaded_layers, loaded_hidden_size = past_state_dict
     if loaded_epoch < NUM_EPOCHS-1:
         best_model = loaded_best_model
         best_loss = loaded_best_loss
         start_epoch = loaded_epoch+1
+        composer = model.Composer(dataset.vocab, loaded_layers, loaded_hidden_size)
         composer.load_state_dict(best_model)
         print("LOADED MODEL")
         print(f"Epochs to train: {NUM_EPOCHS-start_epoch}")
         print(f"Save path: {SAVE_PATH}")
+        print(f"Layers: {loaded_layers}")
+        print(f"Hidden size: {loaded_hidden_size}")
         input("Enter to resume training >>> ")
     else:
         print(f"Hey Andy, this model is already trained up to {NUM_EPOCHS} epochs.")
@@ -124,5 +129,5 @@ for epoch in range(start_epoch, NUM_EPOCHS):
             best_model = composer.state_dict()
         print(f"Loss: {loss}")
         if DO_WANDB: wandb.log({"valid_loss": loss})
-        checkpoint([best_model, dataset.vocab, best_loss, epoch])
+        checkpoint([best_model, dataset.vocab, best_loss, epoch, composer.layers, composer.hidden_size])
 

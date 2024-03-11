@@ -4,11 +4,16 @@ import numpy as np
 import model
 from midi_processor import processor
 
-PATH = "models/jazz-2.pth"
-SAVE_PATH = "results/jazz-2-1.mid"
+PATH = "models/jazz-4.pth"
+SAVE_PATH = "results/jazz-4-1.mid"
 PROMPTS_PATH = "dataset/ArtPepper_Anthropology_FINAL.mid"
 
-best_model, num_vocab, best_loss, epoch = torch.load(PATH)
+best_model, num_vocab, best_loss, epoch, layers, hidden_size = torch.load(PATH)
+
+print(f"Epochs: {epoch}")
+print(f"Layers: {layers}")
+print(f"Hidden size: {hidden_size}")
+
 TEMPERATURE = 1
 
 # load ascii text and covert to lowercase
