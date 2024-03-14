@@ -5,7 +5,7 @@ import model
 from midi_processor import processor
 
 PATH = "models/jazz-5.pth"
-SAVE_PATH = "results/jazz-5-2.mid"
+SAVE_PATH = "results/jazz-8-1.mid"
 PROMPTS_PATH = "dataset/WyntonMarsalis_Cherokee_FINAL.mid"
 
 best_model, num_vocab, best_loss, epoch, layers, hidden_size = torch.load(PATH)
