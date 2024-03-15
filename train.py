@@ -13,12 +13,13 @@ NUM_EPOCHS = 20
 TRAIN_SPLIT = 0.8
 SEQ_LENGTH = 100
 SAMPLE_FRACTION = 0.1
-LAYERS = 3
+LAYERS = 2
 HIDDEN_SIZE = 128
 
 DO_WANDB = True
 
-SAVE_PATH = "models/jazz-8.pth"
+MODEL_NAME = "jazz-9"
+SAVE_PATH = f"models/{MODEL_NAME}.pth"
 
 def checkpoint(data):
     torch.save(data, SAVE_PATH)
@@ -38,6 +39,7 @@ if DO_WANDB:
             "epochs": NUM_EPOCHS,
             "layers": LAYERS,
             "hidden_size": HIDDEN_SIZE,
+            "save_name": MODEL_NAME
         }
     )
 

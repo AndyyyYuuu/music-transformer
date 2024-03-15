@@ -4,8 +4,8 @@ import numpy as np
 import model
 from midi_processor import processor
 
-PATH = "models/jazz-5.pth"
-SAVE_PATH = "results/jazz-8-1.mid"
+PATH = "models/jazz-9.pth"
+SAVE_PATH = "results/jazz-9-1.mid"
 PROMPTS_PATH = "dataset/WyntonMarsalis_Cherokee_FINAL.mid"
 
 best_model, num_vocab, best_loss, epoch, layers, hidden_size = torch.load(PATH)
@@ -14,7 +14,7 @@ print(f"Epochs: {epoch}")
 print(f"Layers: {layers}")
 print(f"Hidden size: {hidden_size}")
 
-TEMPERATURE = 1
+TEMPERATURE = 0.8
 
 # load ascii text and covert to lowercase
 encoded_midi = processor.encode_midi(PROMPTS_PATH)
