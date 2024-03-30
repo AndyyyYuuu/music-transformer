@@ -167,7 +167,10 @@ cython_debug/
 .idea/vcs.xml
 midi_processor/__pycache__/*
 __pycache__/*
-dataset/*
 midi_processor
 wandb/*
 results/*
+data/weimar/*
+data/omnibook_xml/*
+data/omnibook_xml_nochords/*
+data/omnibook_midi/*

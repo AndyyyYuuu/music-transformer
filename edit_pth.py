@@ -6,7 +6,6 @@ while True:
     os.system("clear")
     path = input("Enter path to begin: ")
     pth = torch.load(path)
-    torch.save(pth+[0.2], "models/jazz-11.pth")
     while True:
         printed_list = []
         i = 0
