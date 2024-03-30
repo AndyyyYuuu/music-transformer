@@ -9,28 +9,27 @@ import model
 import datasets
 import utils
 
-NUM_EPOCHS = 20
+NUM_EPOCHS = 40
 TRAIN_SPLIT = 0.8
 SEQ_LENGTH = 100
 SAMPLE_FRACTION = 0.1
 LAYERS = 2
-HIDDEN_SIZE = 128
+HIDDEN_SIZE = 64
+DROPOUT_CHANCE = 0
 
 DO_WANDB = True
 
-MODEL_NAME = "jazz-9"
+MODEL_NAME = "jazz-12"
 SAVE_PATH = f"models/{MODEL_NAME}.pth"
+
 
 def checkpoint(data):
     torch.save(data, SAVE_PATH)
 
-if DO_WANDB:
-    # start a new wandb run to track this script
-    wandb.init(
-        # set the wandb project where this run will be logged
-        project="music-lstm",
 
-        # track hyperparameters and run metadata
+if DO_WANDB:
+    wandb.init(
+        project="music-lstm",
         config={
             "architecture": "LSTM",
             "dataset": "Weimar Jazz Database",
@@ -39,7 +38,8 @@ if DO_WANDB:
             "epochs": NUM_EPOCHS,
             "layers": LAYERS,
             "hidden_size": HIDDEN_SIZE,
-            "save_name": MODEL_NAME
+            "save_name": MODEL_NAME,
+            "dropout": DROPOUT_CHANCE
         }
     )
 
@@ -58,10 +58,10 @@ print(f"Size: {len(dataset)}")
 print(f"\tTrain: {train_size}")
 print(f"\tTest: {test_size}")
 print(dataset.vocab)
-composer = model.Composer(dataset.vocab, LAYERS, HIDDEN_SIZE)
+composer = model.Composer(dataset.vocab, LAYERS, HIDDEN_SIZE, DROPOUT_CHANCE)
 
 optimizer = torch.optim.Adam(composer.parameters())
-loss_function = torch.nn.CrossEntropyLoss(reduction="sum")
+loss_function = torch.nn.CrossEntropyLoss(reduction="mean")
 
 best_model = None
 best_loss = np.inf
@@ -71,12 +71,12 @@ start_epoch = 0
 # Load checkpoint
 if os.path.exists(SAVE_PATH):
     past_state_dict = torch.load(SAVE_PATH)
-    loaded_best_model, loaded_vocab, loaded_best_loss, loaded_epoch, loaded_layers, loaded_hidden_size = past_state_dict
+    loaded_best_model, loaded_vocab, loaded_best_loss, loaded_epoch, loaded_layers, loaded_hidden_size, loaded_dropout = past_state_dict
     if loaded_epoch < NUM_EPOCHS-1:
         best_model = loaded_best_model
         best_loss = loaded_best_loss
         start_epoch = loaded_epoch+1
-        composer = model.Composer(dataset.vocab, loaded_layers, loaded_hidden_size)
+        composer = model.Composer(dataset.vocab, loaded_layers, loaded_hidden_size, loaded_dropout)
         composer.load_state_dict(best_model)
         print("LOADED MODEL")
         print(f"Epochs to train: {NUM_EPOCHS-start_epoch}")
@@ -113,7 +113,7 @@ for epoch in range(start_epoch, NUM_EPOCHS):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        if DO_WANDB: wandb.log({"train_loss": loss})
+        if DO_WANDB: wandb.log({"train_loss_mean": loss})
 
 
 
@@ -130,6 +130,6 @@ for epoch in range(start_epoch, NUM_EPOCHS):
             best_loss = loss
             best_model = composer.state_dict()
         print(f"Loss: {loss}")
-        if DO_WANDB: wandb.log({"valid_loss": loss})
-        checkpoint([best_model, dataset.vocab, best_loss, epoch, composer.layers, composer.hidden_size])
+        if DO_WANDB: wandb.log({"valid_loss_mean": loss})
+        checkpoint([best_model, dataset.vocab, best_loss, epoch, composer.layers, composer.hidden_size, composer.dropout_chance])
 

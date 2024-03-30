@@ -4,17 +4,17 @@ import numpy as np
 import model
 from midi_processor import processor
 
-PATH = "models/jazz-9.pth"
-SAVE_PATH = "results/jazz-9-1.mid"
+PATH = "models/jazz-12.pth"
+SAVE_PATH = "results/jazz-12-1.mid"
 PROMPTS_PATH = "dataset/WyntonMarsalis_Cherokee_FINAL.mid"
 
-best_model, num_vocab, best_loss, epoch, layers, hidden_size = torch.load(PATH)
+best_model, num_vocab, best_loss, epoch, layers, hidden_size, dropout = torch.load(PATH)
 
 print(f"Epochs: {epoch}")
 print(f"Layers: {layers}")
 print(f"Hidden size: {hidden_size}")
 
-TEMPERATURE = 0.8
+TEMPERATURE = 1
 
 # load ascii text and covert to lowercase
 encoded_midi = processor.encode_midi(PROMPTS_PATH)
@@ -25,7 +25,7 @@ rand_start = np.random.randint(0, len(encoded_midi)-prompt_size)
 prompt = encoded_midi[rand_start:rand_start+prompt_size]
 pattern = prompt.copy()
 
-composer = model.Composer(num_vocab, layers, hidden_size)
+composer = model.Composer(num_vocab, layers, hidden_size, dropout)
 composer.load_state_dict(best_model)
 composer.eval()
 
