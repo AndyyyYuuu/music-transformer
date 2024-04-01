@@ -12,14 +12,14 @@ import utils
 NUM_EPOCHS = 40
 TRAIN_SPLIT = 0.8
 SEQ_LENGTH = 100
-SAMPLE_FRACTION = 0.1
 LAYERS = 2
-HIDDEN_SIZE = 64
-DROPOUT_CHANCE = 0
+HIDDEN_SIZE = 128
+DROPOUT_CHANCE = 0.2
 
-DO_WANDB = True
+DO_WANDB = False
+LOAD_FROM_MIDI = True
 
-MODEL_NAME = "jazz-12"
+MODEL_NAME = "maestro-1"
 SAVE_PATH = f"models/{MODEL_NAME}.pth"
 
 
@@ -32,7 +32,7 @@ if DO_WANDB:
         project="music-lstm",
         config={
             "architecture": "LSTM",
-            "dataset": "Weimar Jazz Database",
+            "dataset": "MAESTRO",
             "train_split": TRAIN_SPLIT,
             "sequence_length": SEQ_LENGTH,
             "epochs": NUM_EPOCHS,
@@ -42,22 +42,20 @@ if DO_WANDB:
             "dropout": DROPOUT_CHANCE
         }
     )
-
 print("Loading dataset...")
-dataset = datasets.MidiDataset("dataset", SEQ_LENGTH, subset_prop=0.1)
 
-train_size = int(len(dataset)*TRAIN_SPLIT)
-test_size = len(dataset) - train_size
-train_set, test_set = torch.utils.data.random_split(dataset, [train_size, test_size])
+dataset = datasets.ChunkedMidiDataset(
+    source_dir="data/maestro",
+    chunks_dir="data/maestro_chunks",
+    seq_length=SEQ_LENGTH,
+    train_split=TRAIN_SPLIT,
+    subset_prop=0.1,
+    chunk_size=100000,
+    save_chunks=True
+)
 
-train_indices = list(range(len(dataset)))[:train_size]
-test_indices = list(range(len(dataset)))[train_size:]
+dataset.print_info()
 
-print("-- Dataset Info --")
-print(f"Size: {len(dataset)}")
-print(f"\tTrain: {train_size}")
-print(f"\tTest: {test_size}")
-print(dataset.vocab)
 composer = model.Composer(dataset.vocab, LAYERS, HIDDEN_SIZE, DROPOUT_CHANCE)
 
 optimizer = torch.optim.Adam(composer.parameters())
@@ -96,16 +94,11 @@ else:
 
 for epoch in range(start_epoch, NUM_EPOCHS):
 
-    random.shuffle(train_indices)
-    random.shuffle(test_indices)
-    train_sampler = torch.utils.data.SubsetRandomSampler(train_indices[:int(len(train_indices)*SAMPLE_FRACTION)])
-    test_sampler = torch.utils.data.SubsetRandomSampler(test_indices[:int(len(test_indices)*SAMPLE_FRACTION)])
-    train_loader = torch.utils.data.DataLoader(dataset, batch_size=32, sampler=train_sampler)
-    test_loader = torch.utils.data.DataLoader(dataset, batch_size=32, sampler=test_sampler)
+    dataset.randomize_loaders()
 
     composer.train()
-    loading_iter = iter(train_loader)
-    for i in utils.progress_iter(range(len(train_loader)), "Training"):
+    loading_iter = iter(dataset.train_loader)
+    for i in utils.progress_iter(range(len(dataset.train_loader)), "Training"):
 
         x_batch, y_batch = next(loading_iter)
         y_pred = composer(x_batch)
@@ -120,8 +113,8 @@ for epoch in range(start_epoch, NUM_EPOCHS):
     composer.eval()
     loss = 0
     with torch.no_grad():
-        loading_iter = iter(test_loader)
-        for i in utils.progress_iter(test_loader, "Validating"):
+        loading_iter = iter(dataset.valid_loader)
+        for i in utils.progress_iter(dataset.valid_loader, "Validating"):
             X_batch, y_batch = next(loading_iter)
             # X_batch, y_batch = X_batch.to(device), y_batch.to(device)
             y_pred = composer(X_batch)

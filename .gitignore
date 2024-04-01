@@ -174,3 +174,5 @@ data/weimar/*
 data/omnibook_xml/*
 data/omnibook_xml_nochords/*
 data/omnibook_midi/*
+data/maestro/*
+models/*
