@@ -170,9 +170,8 @@ __pycache__/*
 midi_processor
 wandb/*
 results/*
-data/weimar/*
-data/omnibook_xml/*
-data/omnibook_xml_nochords/*
-data/omnibook_midi/*
-data/maestro/*
+
+data/*/
+!data/*/tensor/
+!data/*/tensor/*
 models/*
