@@ -16,10 +16,10 @@ LAYERS = 2
 HIDDEN_SIZE = 128
 DROPOUT_CHANCE = 0.2
 
-DO_WANDB = False
+DO_WANDB = True
 LOAD_FROM_MIDI = True
 
-MODEL_NAME = "maestro-1"
+MODEL_NAME = "maestro-2"
 SAVE_PATH = f"models/{MODEL_NAME}.pth"
 
 
@@ -43,18 +43,28 @@ if DO_WANDB:
         }
     )
 print("Loading dataset...")
-
+'''
 dataset = datasets.ChunkedMidiDataset(
     source_dir="data/maestro",
-    chunks_dir="data/maestro_chunks",
+    chunks_dir="data/maestro/tensor",
     seq_length=SEQ_LENGTH,
     train_split=TRAIN_SPLIT,
     subset_prop=0.1,
     chunk_size=100000,
     save_chunks=True
 )
+'''
+dataset = datasets.MidiDatasetByPiece(
+    source_dir="data/maestro/midi",
+    chunks_dir="data/maestro/tensor",
+    seq_length=SEQ_LENGTH,
+    train_split=TRAIN_SPLIT,
+    subset_prop=0.1,
+    sample_size=50,
+    save_chunks=False
+)
 
-dataset.print_info()
+# dataset.print_info()
 
 composer = model.Composer(dataset.vocab, LAYERS, HIDDEN_SIZE, DROPOUT_CHANCE)
 
