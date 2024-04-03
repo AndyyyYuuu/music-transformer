@@ -68,6 +68,7 @@ class MidiDataset:
         print(f"Vocabulary:{self.vocab.item()}")
 
 
+# Dataset with input-output pairs saved as chunks
 class ChunkedMidiDataset:
 
     def __init__(self, source_dir, chunks_dir, seq_length, train_split, subset_prop, chunk_size, save_chunks):
@@ -116,7 +117,7 @@ class ChunkedMidiDataset:
             # Ignore data not included in chunk?
         else:
             # Count chunks
-            for i in range(len(os.listdir(f"{self.chunks_dir}/chunks"))):
+            for i in range(len(os.listdir(f"{self.chunks_dir}"))):
                 file = os.listdir(self.chunks_dir)[i]
                 filename = os.fsdecode(file)
                 if filename.endswith(".chunk"):
@@ -170,3 +171,146 @@ class ChunkedMidiDataset:
         print(f"\tTrain: {self.train_size}")
         print(f"\tValidation: {self.valid_size}")
         print(f"Vocabulary:{self.vocab.item()}")
+
+
+# Dataset
+class MidiDatasetByPiece:
+    def __init__(self, source_dir, chunks_dir, seq_length, train_split, subset_prop, sample_size, save_chunks):
+
+        self.train_loader = None
+        self.valid_loader = None
+        self.source_dir = source_dir
+        self.chunks_dir = chunks_dir
+        self.midi_paths = []
+        self.seq_length = seq_length
+        self.sample_size = sample_size
+        self.subset_prop = subset_prop
+
+        self.selected_train = []
+        self.selected_valid = []
+        self.data_x = []
+        self.data_y = []
+        self.chunk_x = []
+        self.chunk_y = []
+        self.num_chunks = 0
+        chunk_idx = 0
+        self.vocab = 0
+        self.train_size = None
+        self.valid_size = None
+        self.train_indices = None
+        self.valid_indices = None
+        if save_chunks:
+            for i in utils.progress_iter(range(len(os.listdir(self.source_dir))), "Saving Chunks"):
+                file = os.listdir(self.source_dir)[i]
+                filename = os.fsdecode(file)
+                if filename.endswith(".mid") or filename.endswith(".midi"):
+
+                    self.midi_paths.append(file)
+                    encoded_midi = processor.encode_midi(os.path.join(self.source_dir, file))
+
+                    if self.vocab < max(encoded_midi):
+                        self.vocab = max(encoded_midi)
+
+                    torch.save(encoded_midi, f"{self.chunks_dir}/{chunk_idx}.midi.pth")
+                    chunk_idx += 1
+
+            self.num_chunks = chunk_idx
+            torch.save([self.num_chunks, self.vocab], f"{self.chunks_dir}/info.pth")
+        else:
+            self.num_chunks, self.vocab = torch.load(f"{self.chunks_dir}/info.pth")
+            '''
+            # Count chunks
+            for i in range(len(os.listdir(self.chunks_dir))):
+                file = os.listdir(self.chunks_dir)[i]
+                filename = os.fsdecode(file)
+                if filename.endswith(".midi.pth") or filename.endswith(".mid.pth"):
+                    self.num_chunks += 1
+            # Find chunk vocab
+            
+            for piece_i in range(self.num_chunks):
+                piece_x, piece_y = self.load_saves_by_idx(piece_i)
+                if max(piece_y) > self.vocab:
+                    self.vocab = max(piece_y)
+            '''
+
+        self.train_pieces_size = int(self.sample_size * train_split)
+        self.valid_pieces_size = self.sample_size - self.train_pieces_size
+
+        self.train_pieces_indices = list(range(self.sample_size))[:self.train_pieces_size]
+        self.valid_pieces_indices = list(range(self.sample_size))[self.train_pieces_size:]
+
+    def save_chunk(self, chunk_x, chunk_y, chunk_idx):
+        chunk_x = torch.tensor(chunk_x, dtype=torch.float32).reshape(len(chunk_x), self.seq_length, 1)
+        chunk_y = torch.tensor(chunk_y)
+        torch.save((chunk_x, chunk_y), f"{self.chunks_dir}/{chunk_idx}.chunk")
+
+    def load_chunk_n(self, n: int):
+        return torch.load(f"{self.chunks_dir}/{n}.chunk")
+
+    def __len__(self):
+        return self.train_size + self.valid_size
+
+    def __getitem__(self, idx):
+        return (self.selected_train+self.selected_valid)[idx]
+        # return [torch.tensor(self.data_x[idx], dtype=torch.float32).reshape(len(self), self.seq_length, 1),
+        # torch.tensor(self.data_y[idx], dtype=torch.float32)]
+
+    def randomize_loaders(self):
+
+        random.shuffle(self.train_pieces_indices)
+        random.shuffle(self.valid_pieces_indices)
+        self.selected_train = self.load_saves_by_idx(self.train_pieces_indices)
+
+        self.train_size = len(self.selected_train)
+        self.selected_valid = self.load_saves_by_idx(self.valid_pieces_indices)
+        self.valid_size = len(self.selected_valid)
+        print(self.valid_size)
+
+        self.train_indices = range(self.train_size)
+        self.valid_indices = range(self.train_size, self.train_size+self.valid_size)
+        train_sampler = torch.utils.data.SubsetRandomSampler(
+            self.train_indices[:int(len(self.train_indices) * self.subset_prop)])
+        valid_sampler = torch.utils.data.SubsetRandomSampler(
+            self.valid_indices[:int(len(self.valid_indices) * self.subset_prop)])
+        self.train_loader = torch.utils.data.DataLoader(self, batch_size=32, sampler=train_sampler)
+        self.valid_loader = torch.utils.data.DataLoader(self, batch_size=32, sampler=valid_sampler)
+
+
+    def load_saves_by_idx(self, idx: list):
+        data_x = []
+        data_y = []
+        data = []
+        for i in idx:
+            loaded_piece = torch.load(f"{self.chunks_dir}/{i}.midi.pth")
+            for note_i in range(len(loaded_piece) - self.seq_length):
+                piece_x = loaded_piece[note_i:note_i + self.seq_length]
+                piece_y = loaded_piece[note_i + self.seq_length]
+                data.append([piece_x, piece_y])
+                data_x.append(piece_x)
+                data_y.append(piece_y)
+
+        data_x = torch.tensor(data_x, dtype=torch.float32).reshape(len(data_x), self.seq_length, 1)
+        data_y = torch.tensor(data_y)
+        data = [[data_x[i], data_y[i]] for i in range(len(data_y))]
+        return data
+
+    def print_info(self):
+        print("-- Dataset Info --")
+        print(f"Total Pairs: {self.num_chunks*len(self)}")
+        print(f"Number of Chunks: {self.num_chunks}")
+        print(f"Chunk Size: {len(self)}")
+        print(f"\tTrain: {self.train_size}")
+        print(f"\tValidation: {self.valid_size}")
+        print(f"Vocabulary:{self.vocab.item()}")
+
+
+def list_to_pairs(seq_list, seq_length):
+    data_x = []
+    data_y = []
+    for note_i in range(len(seq_list) - seq_length):
+        seq_in = seq_list[note_i:note_i + seq_length]
+        seq_out = seq_list[note_i + seq_length]
+
+        # Add note to chunk
+        data_x.append([note for note in seq_in])
+        data_y.append(seq_out)
