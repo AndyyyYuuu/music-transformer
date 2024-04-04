@@ -215,7 +215,7 @@ class MidiDatasetByPiece:
                     chunk_idx += 1
 
             self.num_chunks = chunk_idx
-            torch.save([self.num_chunks, self.vocab], f"{self.chunks_dir}/info.pth")
+            torch.save([self.num_chunks, self.vocab+1], f"{self.chunks_dir}/info.pth")
         else:
             self.num_chunks, self.vocab = torch.load(f"{self.chunks_dir}/info.pth")
             '''
@@ -299,9 +299,9 @@ class MidiDatasetByPiece:
         print(f"Total Pairs: {self.num_chunks*len(self)}")
         print(f"Number of Chunks: {self.num_chunks}")
         print(f"Chunk Size: {len(self)}")
-        print(f"\tTrain: {self.train_size}")
-        print(f"\tValidation: {self.valid_size}")
-        print(f"Vocabulary:{self.vocab.item()}")
+        print(f"\tTrain: {self.train_pieces_size} pieces")
+        print(f"\tValidation: {self.valid_pieces_size} pieces")
+        print(f"Vocabulary: {self.vocab.item()}")
 
 
 def list_to_pairs(seq_list, seq_length):
