@@ -188,12 +188,8 @@ class MidiDatasetByPiece:
 
         self.selected_train = []
         self.selected_valid = []
-        self.data_x = []
-        self.data_y = []
-        self.chunk_x = []
-        self.chunk_y = []
-        self.num_chunks = 0
-        chunk_idx = 0
+        self.num_pieces = 0
+        piece_idx = 0
         self.vocab = 0
         self.train_size = None
         self.valid_size = None
@@ -211,27 +207,13 @@ class MidiDatasetByPiece:
                     if self.vocab < max(encoded_midi):
                         self.vocab = max(encoded_midi)
 
-                    torch.save(encoded_midi, f"{self.chunks_dir}/{chunk_idx}.midi.pth")
-                    chunk_idx += 1
+                    torch.save(encoded_midi, f"{self.chunks_dir}/{piece_idx}.midi.pth")
+                    piece_idx += 1
 
-            self.num_chunks = chunk_idx
-            torch.save([self.num_chunks, self.vocab+1], f"{self.chunks_dir}/info.pth")
+            self.num_pieces = piece_idx
+            torch.save([self.num_pieces, self.vocab+1], f"{self.chunks_dir}/info.pth")
         else:
-            self.num_chunks, self.vocab = torch.load(f"{self.chunks_dir}/info.pth")
-            '''
-            # Count chunks
-            for i in range(len(os.listdir(self.chunks_dir))):
-                file = os.listdir(self.chunks_dir)[i]
-                filename = os.fsdecode(file)
-                if filename.endswith(".midi.pth") or filename.endswith(".mid.pth"):
-                    self.num_chunks += 1
-            # Find chunk vocab
-            
-            for piece_i in range(self.num_chunks):
-                piece_x, piece_y = self.load_saves_by_idx(piece_i)
-                if max(piece_y) > self.vocab:
-                    self.vocab = max(piece_y)
-            '''
+            self.num_pieces, self.vocab = torch.load(f"{self.chunks_dir}/info.pth")
 
         self.train_pieces_size = int(self.sample_size * train_split)
         self.valid_pieces_size = self.sample_size - self.train_pieces_size
@@ -239,21 +221,11 @@ class MidiDatasetByPiece:
         self.train_pieces_indices = list(range(self.sample_size))[:self.train_pieces_size]
         self.valid_pieces_indices = list(range(self.sample_size))[self.train_pieces_size:]
 
-    def save_chunk(self, chunk_x, chunk_y, chunk_idx):
-        chunk_x = torch.tensor(chunk_x, dtype=torch.float32).reshape(len(chunk_x), self.seq_length, 1)
-        chunk_y = torch.tensor(chunk_y)
-        torch.save((chunk_x, chunk_y), f"{self.chunks_dir}/{chunk_idx}.chunk")
-
-    def load_chunk_n(self, n: int):
-        return torch.load(f"{self.chunks_dir}/{n}.chunk")
-
     def __len__(self):
         return self.train_size + self.valid_size
 
     def __getitem__(self, idx):
         return (self.selected_train+self.selected_valid)[idx]
-        # return [torch.tensor(self.data_x[idx], dtype=torch.float32).reshape(len(self), self.seq_length, 1),
-        # torch.tensor(self.data_y[idx], dtype=torch.float32)]
 
     def randomize_loaders(self):
 
@@ -296,8 +268,7 @@ class MidiDatasetByPiece:
 
     def print_info(self):
         print("-- Dataset Info --")
-        print(f"Total Pairs: {self.num_chunks*len(self)}")
-        print(f"Number of Chunks: {self.num_chunks}")
+        print(f"Number of Chunks: {self.num_pieces}")
         print(f"Chunk Size: {len(self)}")
         print(f"\tTrain: {self.train_pieces_size} pieces")
         print(f"\tValidation: {self.valid_pieces_size} pieces")
