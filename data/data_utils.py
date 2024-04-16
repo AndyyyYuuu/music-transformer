@@ -1,6 +1,7 @@
 import music21
 import os
 from xml.etree import ElementTree
+import random
 
 
 # Converts xml to midi and saves at new path
@@ -44,4 +45,14 @@ def process_xml_folder(source, destination):
 
 
 # remove_all_chords("omnibook_xml", "omnibook_xml_nochords")
-process_xml_folder("omnibook_xml_nochords", "omnibook_midi")
+# process_xml_folder("omnibook_xml_nochords", "omnibook_midi")
+
+def random_sample(source, destination, prop):
+    indices = list(range(len(os.listdir(source))))
+    print(indices)
+    random.shuffle(indices)
+    indices = indices[:int(len(indices)*prop)]
+    dirs = os.listdir(source)
+    for i in indices:
+        d = dirs[i]
+        os.rename(os.path.join(source, d), os.path.join(destination, d))
