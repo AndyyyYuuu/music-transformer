@@ -9,17 +9,17 @@ import model
 import datasets
 import utils
 
-NUM_EPOCHS = 40
+NUM_EPOCHS = 64
 TRAIN_SPLIT = 0.8
 SEQ_LENGTH = 100
-LAYERS = 2
-HIDDEN_SIZE = 128
+LAYERS = 3
+HIDDEN_SIZE = 256
 DROPOUT_CHANCE = 0.2
 
 DO_WANDB = True
 LOAD_FROM_MIDI = True
 
-MODEL_NAME = "maestro-2"
+MODEL_NAME = "maestro-5"
 SAVE_PATH = f"models/{MODEL_NAME}.pth"
 
 
@@ -54,19 +54,33 @@ dataset = datasets.ChunkedMidiDataset(
     save_chunks=True
 )
 '''
-dataset = datasets.MidiDatasetByPiece(
-    source_dir="data/maestro/midi",
-    chunks_dir="data/maestro/tensor",
+
+train_set = datasets.MidiDatasetByPiece(
+    source_dir="data/maestro/midi_train",
+    chunks_dir="data/maestro/tensor_train",
     seq_length=SEQ_LENGTH,
-    train_split=TRAIN_SPLIT,
     subset_prop=0.1,
-    sample_size=50,
-    save_chunks=False
+    sample_size=20,
+    save_chunks=False,
+    shuffle=True
 )
+
+valid_set = datasets.MidiDatasetByPiece(
+    source_dir="data/maestro/midi_valid",
+    chunks_dir="data/maestro/tensor_valid",
+    seq_length=SEQ_LENGTH,
+    subset_prop=0.1,
+    sample_size=4,
+    save_chunks=False,
+    shuffle=False
+)
+
+train_set.vocab = max(train_set.vocab, valid_set.vocab)
+valid_set.vocab = train_set.vocab
 
 # dataset.print_info()
 
-composer = model.Composer(dataset.vocab, LAYERS, HIDDEN_SIZE, DROPOUT_CHANCE)
+composer = model.Composer(max(train_set.vocab, valid_set.vocab), LAYERS, HIDDEN_SIZE, DROPOUT_CHANCE)
 
 optimizer = torch.optim.Adam(composer.parameters())
 loss_function = torch.nn.CrossEntropyLoss(reduction="mean")
@@ -84,7 +98,7 @@ if os.path.exists(SAVE_PATH):
         best_model = loaded_best_model
         best_loss = loaded_best_loss
         start_epoch = loaded_epoch+1
-        composer = model.Composer(dataset.vocab, loaded_layers, loaded_hidden_size, loaded_dropout)
+        composer = model.Composer(train_set.vocab, loaded_layers, loaded_hidden_size, loaded_dropout)
         composer.load_state_dict(best_model)
         print("LOADED MODEL")
         print(f"Epochs to train: {NUM_EPOCHS-start_epoch}")
@@ -101,14 +115,13 @@ else:
     print(f"Save path: {SAVE_PATH}")
 
 
-
+valid_set.create_loaders()
 for epoch in range(start_epoch, NUM_EPOCHS):
-
-    dataset.randomize_loaders()
+    train_set.create_loaders()
 
     composer.train()
-    loading_iter = iter(dataset.train_loader)
-    for i in utils.progress_iter(range(len(dataset.train_loader)), "Training"):
+    loading_iter = iter(train_set.loader)
+    for i in utils.progress_iter(range(len(train_set.loader)), "Training"):
 
         x_batch, y_batch = next(loading_iter)
         y_pred = composer(x_batch)
@@ -123,8 +136,8 @@ for epoch in range(start_epoch, NUM_EPOCHS):
     composer.eval()
     loss = 0
     with torch.no_grad():
-        loading_iter = iter(dataset.valid_loader)
-        for i in utils.progress_iter(dataset.valid_loader, "Validating"):
+        loading_iter = iter(valid_set.loader)
+        for i in utils.progress_iter(valid_set.loader, "Validating"):
             X_batch, y_batch = next(loading_iter)
             # X_batch, y_batch = X_batch.to(device), y_batch.to(device)
             y_pred = composer(X_batch)
@@ -134,5 +147,5 @@ for epoch in range(start_epoch, NUM_EPOCHS):
             best_model = composer.state_dict()
         print(f"Loss: {loss}")
         if DO_WANDB: wandb.log({"valid_loss_mean": loss})
-        checkpoint([best_model, dataset.vocab, best_loss, epoch, composer.layers, composer.hidden_size, composer.dropout_chance])
+        checkpoint([best_model, train_set.vocab, best_loss, epoch, composer.layers, composer.hidden_size, composer.dropout_chance])
 
