@@ -43,17 +43,6 @@ if DO_WANDB:
         }
     )
 print("Loading dataset...")
-'''
-dataset = datasets.ChunkedMidiDataset(
-    source_dir="data/maestro",
-    chunks_dir="data/maestro/tensor",
-    seq_length=SEQ_LENGTH,
-    train_split=TRAIN_SPLIT,
-    subset_prop=0.1,
-    chunk_size=100000,
-    save_chunks=True
-)
-'''
 
 train_set = datasets.MidiDatasetByPiece(
     source_dir="data/maestro/midi_train",

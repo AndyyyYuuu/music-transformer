@@ -4,9 +4,10 @@ import numpy as np
 import model
 from midi_processor import processor
 
-PATH = "models/jazz-12.pth"
-SAVE_PATH = "results/jazz-12-1.mid"
-PROMPTS_PATH = "dataset/WyntonMarsalis_Cherokee_FINAL.mid"
+PATH = "models/maestro-5.pth"
+SAVE_PATH = "results/maestro-5-1.mid"
+PROMPTS_PATH = "data/maestro/midi_train/MIDI-UNPROCESSED_01-03_R1_2014_MID--AUDIO_01_R1_2014_wav--3.midi"
+# PROMPTS_PATH = "data/weimar/ArtPepper_Anthropology_FINAL.mid"
 
 best_model, num_vocab, best_loss, epoch, layers, hidden_size, dropout = torch.load(PATH)
 
@@ -20,7 +21,7 @@ TEMPERATURE = 1
 encoded_midi = processor.encode_midi(PROMPTS_PATH)
 
 prompt_size = 100
-gen_size = 500
+gen_size = 2000
 rand_start = np.random.randint(0, len(encoded_midi)-prompt_size)
 prompt = encoded_midi[rand_start:rand_start+prompt_size]
 pattern = prompt.copy()
@@ -48,7 +49,7 @@ with torch.no_grad():
         predicted_note = np.random.choice(len(prediction_probs), p=prediction_probs)
         # Get character by index
 
-        print(predicted_note, end=' ')
+        print(list(prediction_probs))
         output.append(predicted_note)
         # Push generated character to memory
         pattern.append(int(prediction.argmax()))
