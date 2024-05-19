@@ -4,8 +4,8 @@ import numpy as np
 import model
 from midi_processor import processor
 
-PATH = "models/maestro-5.pth"
-SAVE_PATH = "results/maestro-5-1.mid"
+PATH = "models/maestro-1.pth"
+SAVE_PATH = "results/maestro-1-2.mid"
 PROMPTS_PATH = "data/maestro/midi_train/MIDI-UNPROCESSED_01-03_R1_2014_MID--AUDIO_01_R1_2014_wav--3.midi"
 # PROMPTS_PATH = "data/weimar/ArtPepper_Anthropology_FINAL.mid"
 
@@ -26,7 +26,24 @@ rand_start = np.random.randint(0, len(encoded_midi)-prompt_size)
 prompt = encoded_midi[rand_start:rand_start+prompt_size]
 pattern = prompt.copy()
 
-composer = model.Composer(num_vocab, layers, hidden_size, dropout)
+NUM_EPOCHS = 64
+TRAIN_SPLIT = 0.8
+SEQ_LENGTH = 100
+LAYERS = 3
+HIDDEN_SIZE = 256
+DROPOUT_CHANCE = 0.2
+NUM_HEADS = 1
+EMBED_SIZE = 1
+composer = model.Composer(
+    num_notes=num_vocab,
+    emb_size=EMBED_SIZE,
+    num_heads=NUM_HEADS,
+    hidden_size=HIDDEN_SIZE,
+    num_layers=LAYERS,
+    dropout_chance=DROPOUT_CHANCE
+
+)
+#composer = model.Composer(num_vocab, layers, hidden_size, dropout)
 composer.load_state_dict(best_model)
 composer.eval()
 

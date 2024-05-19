@@ -15,11 +15,13 @@ SEQ_LENGTH = 100
 LAYERS = 3
 HIDDEN_SIZE = 256
 DROPOUT_CHANCE = 0.2
+NUM_HEADS = 1
+EMBED_SIZE = 4
 
-DO_WANDB = True
-LOAD_FROM_MIDI = True
+DO_WANDB = False
+LOAD_FROM_MIDI = False
 
-MODEL_NAME = "maestro-5"
+MODEL_NAME = "maestro-2"
 SAVE_PATH = f"models/{MODEL_NAME}.pth"
 
 
@@ -29,15 +31,17 @@ def checkpoint(data):
 
 if DO_WANDB:
     wandb.init(
-        project="music-lstm",
+        project="music-transformer",
         config={
-            "architecture": "LSTM",
+            "architecture": "Transformer",
             "dataset": "MAESTRO",
             "train_split": TRAIN_SPLIT,
             "sequence_length": SEQ_LENGTH,
             "epochs": NUM_EPOCHS,
             "layers": LAYERS,
             "hidden_size": HIDDEN_SIZE,
+            "num_heads": NUM_HEADS,
+            "embed_size": EMBED_SIZE,
             "save_name": MODEL_NAME,
             "dropout": DROPOUT_CHANCE
         }
@@ -69,7 +73,17 @@ valid_set.vocab = train_set.vocab
 
 # dataset.print_info()
 
-composer = model.Composer(max(train_set.vocab, valid_set.vocab), LAYERS, HIDDEN_SIZE, DROPOUT_CHANCE)
+#composer = model.Composer(max(train_set.vocab, valid_set.vocab), LAYERS, HIDDEN_SIZE, DROPOUT_CHANCE)
+
+composer = model.Composer(
+    num_notes=max(train_set.vocab, valid_set.vocab),
+    emb_size=EMBED_SIZE,
+    num_heads=NUM_HEADS,
+    hidden_size=HIDDEN_SIZE,
+    num_layers=LAYERS,
+    dropout_chance=DROPOUT_CHANCE
+
+)
 
 optimizer = torch.optim.Adam(composer.parameters())
 loss_function = torch.nn.CrossEntropyLoss(reduction="mean")
@@ -114,6 +128,8 @@ for epoch in range(start_epoch, NUM_EPOCHS):
 
         x_batch, y_batch = next(loading_iter)
         y_pred = composer(x_batch)
+
+        # y_pred_flat = y_pred.view(-1, 388)
         loss = loss_function(y_pred, y_batch)
         optimizer.zero_grad()
         loss.backward()
@@ -130,11 +146,12 @@ for epoch in range(start_epoch, NUM_EPOCHS):
             X_batch, y_batch = next(loading_iter)
             # X_batch, y_batch = X_batch.to(device), y_batch.to(device)
             y_pred = composer(X_batch)
+
             loss += loss_function(y_pred, y_batch)
         if loss < best_loss:
             best_loss = loss
             best_model = composer.state_dict()
         print(f"Loss: {loss}")
         if DO_WANDB: wandb.log({"valid_loss_mean": loss})
-        checkpoint([best_model, train_set.vocab, best_loss, epoch, composer.layers, composer.hidden_size, composer.dropout_chance])
+        checkpoint([best_model, train_set.vocab, best_loss, epoch, composer.num_layers, composer.hidden_size, composer.dropout_chance])
 
