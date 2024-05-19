@@ -28,8 +28,6 @@ class Composer(torch.nn.Module):
 
 
     def forward(self, x, mask=None):
-        # print(x)
-        print(x.size())
         x = self.embedding(x) * math.sqrt(self.emb_size)
         x = self.pos_encoder(x)
         if mask is None:

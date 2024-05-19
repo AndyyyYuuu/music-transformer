@@ -349,7 +349,7 @@ class MidiDatasetByPiece:
 
         data_x = torch.tensor(data_x, dtype=torch.float32).reshape(len(data_x), self.seq_length, 1) / float(self.vocab)
         data_y = torch.tensor(data_y)
-        data = [[data_x[i], data_y[i]] for i in range(len(data_y))]
+        data = [[data_x[i].int().squeeze(-1), data_y[i]] for i in range(len(data_y))]
         return data
 
     def print_info(self):
