@@ -9,6 +9,7 @@ class Composer(torch.nn.Module):
         super().__init__()
 
         self.num_layers = num_layers
+        self.num_heads = num_heads
         self.hidden_size = hidden_size
         self.dropout_chance = dropout_chance
         self.pos_encoder = PositionalEncoding(emb_size, dropout_chance)

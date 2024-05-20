@@ -12,16 +12,16 @@ import utils
 NUM_EPOCHS = 64
 TRAIN_SPLIT = 0.8
 SEQ_LENGTH = 100
-LAYERS = 3
-HIDDEN_SIZE = 256
+LAYERS = 6
+HIDDEN_SIZE = 512
 DROPOUT_CHANCE = 0.2
-NUM_HEADS = 4
-EMBED_SIZE = 64
+NUM_HEADS = 8
+EMBED_SIZE = 128
 
 DO_WANDB = True
 LOAD_FROM_MIDI = False
 
-MODEL_NAME = "maestro-2"
+MODEL_NAME = "maestro-5"
 SAVE_PATH = f"models/{MODEL_NAME}.pth"
 
 
@@ -148,10 +148,11 @@ for epoch in range(start_epoch, NUM_EPOCHS):
             y_pred = composer(X_batch)
 
             loss += loss_function(y_pred, y_batch)
+        loss /= len(valid_set.loader)
         if loss < best_loss:
             best_loss = loss
             best_model = composer.state_dict()
         print(f"Loss: {loss}")
         if DO_WANDB: wandb.log({"valid_loss_mean": loss})
-        checkpoint([best_model, train_set.vocab, best_loss, epoch, composer.num_layers, composer.hidden_size, composer.dropout_chance])
+        checkpoint([best_model, train_set.vocab, best_loss, epoch, SEQ_LENGTH, composer.num_layers, composer.hidden_size, composer.dropout_chance, composer.emb_size, composer.num_heads])
 
