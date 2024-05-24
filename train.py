@@ -11,18 +11,27 @@ import utils
 
 NUM_EPOCHS = 64
 TRAIN_SPLIT = 0.8
-SEQ_LENGTH = 100
-LAYERS = 6
+SEQ_LENGTH = 512
+LAYERS = 3
 HIDDEN_SIZE = 512
 DROPOUT_CHANCE = 0.2
-NUM_HEADS = 8
-EMBED_SIZE = 128
+NUM_HEADS = 4
+EMBED_SIZE = 64
 
-DO_WANDB = True
+DO_WANDB = False
 LOAD_FROM_MIDI = False
 
-MODEL_NAME = "maestro-5"
+MODEL_NAME = "maestro-7"
 SAVE_PATH = f"models/{MODEL_NAME}.pth"
+
+if torch.backends.mps.is_available():
+    print("MPS device available.")
+    device = torch.device("mps")
+
+else:
+    print("MPS device not found.")
+    device = torch.device("cpu")
+
 
 
 def checkpoint(data):
@@ -117,9 +126,11 @@ else:
     print(f"Epochs to train: {NUM_EPOCHS}")
     print(f"Save path: {SAVE_PATH}")
 
-
+composer.to(device)
 valid_set.create_loaders()
+
 for epoch in range(start_epoch, NUM_EPOCHS):
+
     train_set.create_loaders()
 
     composer.train()
@@ -127,6 +138,7 @@ for epoch in range(start_epoch, NUM_EPOCHS):
     for i in utils.progress_iter(range(len(train_set.loader)), "Training"):
 
         x_batch, y_batch = next(loading_iter)
+        x_batch, y_batch = x_batch.to(device), y_batch.to(device)
         y_pred = composer(x_batch)
 
         # y_pred_flat = y_pred.view(-1, 388)
@@ -143,9 +155,9 @@ for epoch in range(start_epoch, NUM_EPOCHS):
     with torch.no_grad():
         loading_iter = iter(valid_set.loader)
         for i in utils.progress_iter(valid_set.loader, "Validating"):
-            X_batch, y_batch = next(loading_iter)
-            # X_batch, y_batch = X_batch.to(device), y_batch.to(device)
-            y_pred = composer(X_batch)
+            x_batch, y_batch = next(loading_iter)
+            x_batch, y_batch = x_batch.to(device), y_batch.to(device)
+            y_pred = composer(x_batch)
 
             loss += loss_function(y_pred, y_batch)
         loss /= len(valid_set.loader)

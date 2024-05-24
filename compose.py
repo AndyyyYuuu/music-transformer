@@ -4,8 +4,8 @@ import numpy as np
 import model
 from midi_processor import processor
 
-PATH = "models/maestro-5.pth"
-SAVE_PATH = "results/maestro-5-1.mid"
+PATH = "models/maestro-6.pth"
+SAVE_PATH = "results/maestro-6-2.mid"
 PROMPTS_PATH = "data/maestro/midi_train/MIDI-UNPROCESSED_01-03_R1_2014_MID--AUDIO_01_R1_2014_wav--3.midi"
 # PROMPTS_PATH = "data/weimar/ArtPepper_Anthropology_FINAL.mid"
 best_model, num_vocab, best_loss, epoch, SEQ_LENGTH, layers, hidden_size, dropout, emb_size, num_heads = torch.load(PATH)

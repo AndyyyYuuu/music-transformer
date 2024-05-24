@@ -27,7 +27,6 @@ class Composer(torch.nn.Module):
         self.linear.bias.data.zero_()
         self.linear.weight.data.uniform_(-init_range, init_range)
 
-
     def forward(self, x, mask=None):
         x = self.embedding(x) * math.sqrt(self.emb_size)
         x = self.pos_encoder(x)
