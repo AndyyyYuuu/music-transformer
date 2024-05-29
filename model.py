@@ -5,19 +5,20 @@ import math
 
 
 class Composer(torch.nn.Module):
-    def __init__(self, num_notes, emb_size, num_heads, hidden_size, num_layers, dropout_chance=0.2):
+    def __init__(self, config):
         super().__init__()
 
-        self.num_layers = num_layers
-        self.num_heads = num_heads
-        self.hidden_size = hidden_size
-        self.dropout_chance = dropout_chance
-        self.pos_encoder = PositionalEncoding(emb_size, dropout_chance)
-        encoder_layers = nn.TransformerEncoderLayer(emb_size, num_heads, hidden_size, dropout_chance)
-        self.transformer_encoder = nn.TransformerEncoder(encoder_layers, num_layers)
-        self.embedding = nn.Embedding(num_notes, emb_size)
-        self.emb_size = emb_size
-        self.linear = nn.Linear(emb_size, num_notes)
+        self.num_layers = config["layers"]
+        self.num_heads = config["attention_heads"]
+        self.hidden_size = config["hidden_size"]
+        self.dropout_chance = config["dropout_chance"]
+        self.emb_size = config["embed_size"]
+        self.pos_encoder = PositionalEncoding(self.emb_size, self.dropout_chance)
+        encoder_layers = nn.TransformerEncoderLayer(self.emb_size, self.num_heads, self.hidden_size, self.dropout_chance)
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layers, self.num_layers)
+        self.embedding = nn.Embedding(config["vocab"], config["embed_size"])
+
+        self.linear = nn.Linear(config["embed_size"], config["vocab"])
 
         self.init_weights()
 

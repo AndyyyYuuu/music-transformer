@@ -4,15 +4,13 @@ import numpy as np
 import model
 from midi_processor import processor
 
-PATH = "models/maestro-6.pth"
-SAVE_PATH = "results/maestro-6-2.mid"
+PATH = "models/maestro-7.pth"
+SAVE_PATH = "results/maestro-7-2.mid"
 PROMPTS_PATH = "data/maestro/midi_train/MIDI-UNPROCESSED_01-03_R1_2014_MID--AUDIO_01_R1_2014_wav--3.midi"
 # PROMPTS_PATH = "data/weimar/ArtPepper_Anthropology_FINAL.mid"
-best_model, num_vocab, best_loss, epoch, SEQ_LENGTH, layers, hidden_size, dropout, emb_size, num_heads = torch.load(PATH)
+best_model, config = torch.load(PATH)
+print(config)
 
-print(f"Epochs: {epoch}")
-print(f"Layers: {layers}")
-print(f"Hidden size: {hidden_size}")
 
 TEMPERATURE = 1
 
@@ -28,16 +26,7 @@ pattern = prompt.copy()
 NUM_EPOCHS = 64
 TRAIN_SPLIT = 0.8
 
-composer = model.Composer(
-    num_notes=num_vocab,
-    emb_size=emb_size,
-    num_heads=num_heads,
-    hidden_size=hidden_size,
-    num_layers=layers,
-    dropout_chance=dropout
-
-)
-#composer = model.Composer(num_vocab, layers, hidden_size, dropout)
+composer = model.Composer(config["model"])
 composer.load_state_dict(best_model)
 composer.eval()
 

@@ -8,7 +8,7 @@ import utils
 
 
 class MidiDatasetByPiece:
-    def __init__(self, source_dir: str, chunks_dir: str, seq_length: int, subset_prop: float, sample_size: int, save_chunks: bool, shuffle: bool):
+    def __init__(self, source_dir: str, chunks_dir: str, seq_length: int, batch_size: int, subset_prop: float, sample_size: int, save_chunks: bool, shuffle: bool):
         self.shuffle = shuffle
         self.loader = None
         self.source_dir = source_dir
@@ -17,11 +17,13 @@ class MidiDatasetByPiece:
         self.seq_length = seq_length
         self.sample_size = sample_size
         self.subset_prop = subset_prop
+        self.batch_size = batch_size
 
         self.selected_pairs = []
         self.num_pieces = 0
         piece_idx = 0
         self.vocab = 0
+
         if save_chunks:
             for i in utils.progress_iter(range(len(os.listdir(self.source_dir))), "Saving Chunks"):
                 file = os.listdir(self.source_dir)[i]
@@ -62,7 +64,7 @@ class MidiDatasetByPiece:
 
         sampler = torch.utils.data.SubsetRandomSampler(
             pair_indices[:int(len(pair_indices) * self.subset_prop)])
-        self.loader = torch.utils.data.DataLoader(self, batch_size=32, sampler=sampler)
+        self.loader = torch.utils.data.DataLoader(self, batch_size=self.batch_size, sampler=sampler)
 
     def load_saves_by_idx(self, idx: list):
         data_x = []

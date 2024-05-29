@@ -1,6 +1,11 @@
 import tqdm
 import sys
+import os
 
+
+def create_directory(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 def progress_iter(it, desc):
     return tqdm.tqdm(range(len(it)),
