@@ -2,7 +2,6 @@ import torch
 import random
 import os
 import numpy as np
-import wandb
 import sys
 
 from midi_processor import processor
@@ -46,14 +45,19 @@ def checkpoint(data):
     torch.save(data, SAVE_PATH)
 
 
-if DO_WANDB:
-    wandb.init(
-        project="music-transformer",
-        config={
-            "dataset": "MAESTRO",
-            **config["model"]
-        }
-    )
+try:
+    import wandb
+    if DO_WANDB:
+        wandb.init(
+            project="music-transformer",
+            config={
+                "dataset": "MAESTRO",
+                **config["model"]
+            }
+        )
+except ImportError:
+    print("Warning: wandb is not installed")
+
 print("Loading dataset...")
 
 train_set = datasets.MidiDatasetByPiece(
