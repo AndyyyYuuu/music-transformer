@@ -171,7 +171,5 @@ midi_processor
 wandb/*
 results/*
 
-data/*/*
-!data/*/tensor/
-!data/*/tensor/*
+data/*
 models/*
