@@ -8,10 +8,17 @@ from midi_processor import processor
 import model
 import datasets
 import utils
-from train_config import config
+import train_config
+import importlib
+importlib.reload(utils)
+importlib.reload(train_config)
+importlib.reload(datasets)
+importlib.reload(model)
 
+config = train_config.config
 
 NUM_EPOCHS = config["num_epochs"]
+DATA_PATH = "data/maestro/"
 
 utils.create_directory("models")
 
@@ -21,8 +28,11 @@ if len(sys.argv) > 0:
     except ValueError as e:
         pass
 
+if len(sys.argv) > 1:
+    DATA_PATH = sys.argv[1]
+
 DO_WANDB = "wandb" in sys.argv
-LOAD_FROM_MIDI = "process" in sys.argv
+LOAD_FROM_MIDI = False
 
 MODEL_NAME = f"maestro-{config['model_id']}"
 SAVE_PATH = f"models/{MODEL_NAME}.pth"
@@ -61,8 +71,8 @@ except ImportError:
 print("Loading dataset...")
 
 train_set = datasets.MidiDatasetByPiece(
-    source_dir="data/maestro/midi_train",
-    chunks_dir="data/maestro/tensor_train",
+    source_dir=os.path.join(DATA_PATH, "midi_train"),
+    chunks_dir=os.path.join(DATA_PATH, "tensor_train"),
     batch_size=config["data"]["batch_size"],
     seq_length=config["model"]["sequence_length"],
     subset_prop=0.1,
@@ -72,8 +82,8 @@ train_set = datasets.MidiDatasetByPiece(
 )
 
 valid_set = datasets.MidiDatasetByPiece(
-    source_dir="data/maestro/midi_valid",
-    chunks_dir="data/maestro/tensor_valid",
+    source_dir=os.path.join(DATA_PATH, "midi_valid"),
+    chunks_dir=os.path.join(DATA_PATH, "tensor_valid"),
     batch_size=config["data"]["batch_size"],
     seq_length=config["model"]["sequence_length"],
     subset_prop=0.1,

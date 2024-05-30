@@ -172,4 +172,9 @@ wandb/*
 results/*
 
 data/*
+!data/tensor_train/
+!data/tensor_train/*
+!data/tensor_valid/
+!data/tensor_valid/*
+
 models/*
