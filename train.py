@@ -76,10 +76,11 @@ train_set = datasets.MidiDatasetByPiece(
     chunks_dir=os.path.join(DATA_PATH, "tensor_train"),
     batch_size=config["data"]["batch_size"],
     seq_length=config["model"]["sequence_length"],
-    subset_prop=0.1,
+    subset_prop=config["data"]["subset_prop"],
     sample_size=20,
     save_chunks=False,
-    shuffle=True
+    shuffle=True,
+    device=device
 )
 
 valid_set = datasets.MidiDatasetByPiece(
@@ -90,7 +91,8 @@ valid_set = datasets.MidiDatasetByPiece(
     subset_prop=0.1,
     sample_size=4,
     save_chunks=False,
-    shuffle=False
+    shuffle=False,
+    device=device
 )
 
 train_set.vocab = max(train_set.vocab, valid_set.vocab)
@@ -148,7 +150,7 @@ for epoch in range(start_epoch, NUM_EPOCHS):
     for i in utils.progress_iter(range(len(train_set.loader)), "Training"):
 
         x_batch, y_batch = next(loading_iter)
-        x_batch, y_batch = x_batch.to(device), y_batch.to(device)
+        # x_batch, y_batch = x_batch.to(device), y_batch.to(device)
         y_pred = composer(x_batch)
 
         # y_pred_flat = y_pred.view(-1, 388)
@@ -166,7 +168,7 @@ for epoch in range(start_epoch, NUM_EPOCHS):
         loading_iter = iter(valid_set.loader)
         for i in utils.progress_iter(valid_set.loader, "Validating"):
             x_batch, y_batch = next(loading_iter)
-            x_batch, y_batch = x_batch.to(device), y_batch.to(device)
+            # x_batch, y_batch = x_batch.to(device), y_batch.to(device)
             y_pred = composer(x_batch)
 
             loss += loss_function(y_pred, y_batch)

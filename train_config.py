@@ -7,7 +7,8 @@ config = {
         "name": "MAESTRO",
         "train_split": 0.8,
         "batch_size": 32,
-        "vocab": None
+        "vocab": None,
+        "subset_prop": 0.1
     },
     "model": {
         "architecture": "transformer",

@@ -8,7 +8,7 @@ import utils
 
 
 class MidiDatasetByPiece:
-    def __init__(self, source_dir: str, chunks_dir: str, seq_length: int, batch_size: int, subset_prop: float, sample_size: int, save_chunks: bool, shuffle: bool):
+    def __init__(self, source_dir: str, chunks_dir: str, seq_length: int, batch_size: int, subset_prop: float, sample_size: int, save_chunks: bool, shuffle: bool, device):
         self.shuffle = shuffle
         self.loader = None
         self.source_dir = source_dir
@@ -18,6 +18,7 @@ class MidiDatasetByPiece:
         self.sample_size = sample_size
         self.subset_prop = subset_prop
         self.batch_size = batch_size
+        self.device = device
 
         self.selected_pairs = []
         self.num_pieces = 0
@@ -57,14 +58,10 @@ class MidiDatasetByPiece:
         random.shuffle(pieces_indices)
         pieces_indices = pieces_indices[:self.sample_size]
         self.selected_pairs = self.load_saves_by_idx(pieces_indices)
-        
-        # Sample a subset of subset_prop
-        pair_indices = list(range(len(self.selected_pairs)))
-        random.shuffle(pair_indices)
 
-        sampler = torch.utils.data.SubsetRandomSampler(
-            pair_indices[:int(len(pair_indices) * self.subset_prop)])
-        self.loader = torch.utils.data.DataLoader(self, batch_size=self.batch_size, sampler=sampler)
+        # sampler = torch.utils.data.SubsetRandomSampler(
+        #    pair_indices[:int(len(pair_indices) * self.subset_prop)])
+        self.loader = torch.utils.data.DataLoader(self, batch_size=self.batch_size)
 
     def load_saves_by_idx(self, idx: list):
         data_x = []
@@ -72,17 +69,29 @@ class MidiDatasetByPiece:
         data = []
         for i in idx:
             loaded_piece = torch.load(f"{self.chunks_dir}/{i}.midi.pth")
-            for note_i in range(len(loaded_piece) - self.seq_length):
+            # Sample a subset of subset_prop
+            pair_indices = self.sample_indices(int((len(loaded_piece) - self.seq_length) * self.subset_prop), len(loaded_piece) - self.seq_length)
+            #pair_indices = list(range(len(loaded_piece) - self.seq_length))
+            #random.shuffle(pair_indices)
+            #pair_indices = pair_indices[:int(len(pair_indices) * self.subset_prop)]
+            for note_i in pair_indices:
                 piece_x = loaded_piece[note_i:note_i + self.seq_length]
                 piece_y = loaded_piece[note_i + self.seq_length]
                 data.append([piece_x, piece_y])
                 data_x.append(piece_x)
                 data_y.append(piece_y)
 
-        data_x = torch.tensor(data_x, dtype=torch.float32).reshape(len(data_x), self.seq_length, 1)
-        data_y = torch.tensor(data_y)
+        data_x = torch.tensor(data_x, dtype=torch.float32).reshape(len(data_x), self.seq_length, 1).to(self.device)
+        data_y = torch.tensor(data_y).to(self.device)
         data = [[data_x[i].int().squeeze(-1), data_y[i]] for i in range(len(data_y))]
         return data
+
+
+    def sample_indices(self, sample_size, total_size):
+        indices = list(range(total_size))
+        random.shuffle(indices)
+        return indices[:sample_size]
+
 
     def print_info(self):
         print("-- Dataset Info --")
