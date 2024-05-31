@@ -3,7 +3,7 @@ import importlib
 import numpy as np
 
 import model
-from midi_processor import processor
+import processor
 
 import utils
 
@@ -12,11 +12,11 @@ importlib.reload(model)
 
 utils.create_directory("results")
 
-PATH = "models/maestro-8.pth"
-SAVE_PATH = "results/maestro-8-1.mid"
+PATH = "models/maestro-9.pth"
+SAVE_PATH = "results/maestro-9-1.mid"
 PROMPTS_PATH = "data/maestro/midi_train/MIDI-UNPROCESSED_01-03_R1_2014_MID--AUDIO_01_R1_2014_wav--3.midi"
 # PROMPTS_PATH = "data/weimar/ArtPepper_Anthropology_FINAL.mid"
-best_model, config = torch.load(PATH)
+best_model, config = torch.load(PATH, map_location=torch.device('cpu'))
 print(config)
 
 
