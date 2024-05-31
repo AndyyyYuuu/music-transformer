@@ -3,7 +3,7 @@ import random
 import math
 import numpy as np
 import os
-from midi_processor import processor
+import processor
 import utils
 
 

@@ -2,7 +2,7 @@ config = {
     "architecture": "transformer",
     "num_epochs": 64,
     "train_split": 0.8,
-    "batch_size": 32,
+    "batch_size": 128,
     "data": {
         "name": "MAESTRO",
         "train_split": 0.8,

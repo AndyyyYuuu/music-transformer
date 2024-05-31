@@ -18,23 +18,24 @@ importlib.reload(model)
 config = train_config.config
 
 NUM_EPOCHS = config["num_epochs"]
-DATA_PATH = "data/maestro/"
+MODEL_ID = config['model_id']
+DATA_PATH = "data/"
 
 utils.create_directory("models")
 
-if len(sys.argv) > 0:
+if len(sys.argv) > 1:
     try:
-        MODEL_ID = int(sys.argv[0])
+        MODEL_ID = int(sys.argv[1])
     except ValueError as e:
         pass
 
-if len(sys.argv) > 1:
-    DATA_PATH = sys.argv[1]
+if len(sys.argv) > 2:
+    DATA_PATH = sys.argv[2]
 
 DO_WANDB = "wandb" in sys.argv
 LOAD_FROM_MIDI = False
 
-MODEL_NAME = f"maestro-{config['model_id']}"
+MODEL_NAME = f"maestro-{MODEL_ID}"
 SAVE_PATH = f"models/{MODEL_NAME}.pth"
 
 if torch.cuda.is_available():
