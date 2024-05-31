@@ -54,9 +54,9 @@ class MidiDatasetByPiece:
 
     def create_loaders(self):
         # Select pieces based on sample_size
-        pieces_indices = list(range(self.num_pieces))
-        random.shuffle(pieces_indices)
-        pieces_indices = pieces_indices[:self.sample_size]
+        pieces_indices = self.sample_indices(self.sample_size, self.num_pieces)
+        # random.shuffle(pieces_indices)
+        # pieces_indices = pieces_indices[:self.sample_size]
         self.selected_pairs = self.load_saves_by_idx(pieces_indices)
 
         # sampler = torch.utils.data.SubsetRandomSampler(

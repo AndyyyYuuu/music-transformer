@@ -4,7 +4,7 @@ import os
 import numpy as np
 import sys
 
-from midi_processor import processor
+import processor
 import model
 import datasets
 import utils
@@ -116,7 +116,7 @@ start_epoch = 0
 
 # Load checkpoint
 if os.path.exists(SAVE_PATH):
-    past_state_dict = torch.load(SAVE_PATH)
+    past_state_dict = torch.load(SAVE_PATH, map_location=torch.device("cpu"))
     best_model, config = past_state_dict
     train_info = config["training_info"]
     if train_info["epoch"] < NUM_EPOCHS-1:

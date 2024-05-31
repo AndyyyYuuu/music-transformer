@@ -6,7 +6,7 @@ config = {
     "data": {
         "name": "MAESTRO",
         "train_split": 0.8,
-        "batch_size": 32,
+        "batch_size": 128,
         "vocab": None,
         "subset_prop": 0.1
     },
@@ -23,6 +23,6 @@ config = {
         "min_loss": None,
         "epoch_at": None
     },
-    "model_id": 8
+    "model_id": 10
 
 }
