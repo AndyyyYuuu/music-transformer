@@ -12,8 +12,8 @@ importlib.reload(model)
 
 utils.create_directory("results")
 
-PATH = "models/maestro-9.pth"
-SAVE_PATH = "results/maestro-9-1.mid"
+PATH = "models/maestro-12.pth"
+SAVE_PATH = "results/maestro-12-2.mid"
 PROMPTS_PATH = "data/maestro/midi_train/MIDI-UNPROCESSED_01-03_R1_2014_MID--AUDIO_01_R1_2014_wav--3.midi"
 # PROMPTS_PATH = "data/weimar/ArtPepper_Anthropology_FINAL.mid"
 best_model, config = torch.load(PATH, map_location=torch.device('cpu'))
@@ -25,7 +25,7 @@ TEMPERATURE = 1
 # load ascii text and covert to lowercase
 encoded_midi = processor.encode_midi(PROMPTS_PATH)
 
-prompt_size = 100
+prompt_size = config["model"]["sequence_length"]
 gen_size = 2000
 rand_start = np.random.randint(0, len(encoded_midi)-prompt_size)
 prompt = encoded_midi[rand_start:rand_start+prompt_size]
