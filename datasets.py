@@ -71,9 +71,6 @@ class MidiDatasetByPiece:
             loaded_piece = torch.load(f"{self.chunks_dir}/{i}.midi.pth")
             # Sample a subset of subset_prop
             pair_indices = self.sample_indices(int((len(loaded_piece) - self.seq_length) * self.subset_prop), len(loaded_piece) - self.seq_length)
-            #pair_indices = list(range(len(loaded_piece) - self.seq_length))
-            #random.shuffle(pair_indices)
-            #pair_indices = pair_indices[:int(len(pair_indices) * self.subset_prop)]
             for note_i in pair_indices:
                 piece_x = loaded_piece[note_i:note_i + self.seq_length]
                 piece_y = loaded_piece[note_i + self.seq_length]

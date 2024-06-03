@@ -2,6 +2,9 @@ import music21
 import os
 from xml.etree import ElementTree
 import random
+import torch
+import utils
+import processor
 
 
 # Converts xml to midi and saves at new path
@@ -56,3 +59,27 @@ def random_sample(source, destination, prop):
     for i in indices:
         d = dirs[i]
         os.rename(os.path.join(source, d), os.path.join(destination, d))
+
+def to_tensor(source_dir, chunks_dir):
+    piece_idx = 0
+    vocab = 0
+    midi_paths = []
+    for i in utils.progress_iter(range(len(os.listdir(source_dir))), "Saving Chunks"):
+        file = os.listdir(source_dir)[i]
+        filename = os.fsdecode(file)
+        if filename.endswith(".mid") or filename.endswith(".midi"):
+
+            midi_paths.append(file)
+            encoded_midi = processor.encode_midi(os.path.join(source_dir, file))
+
+            if len(encoded_midi) > 0 and vocab < max(encoded_midi):
+                vocab = max(encoded_midi)
+
+            torch.save(encoded_midi, f"{chunks_dir}/{piece_idx}.midi.pth")
+            piece_idx += 1
+
+    num_pieces = piece_idx
+    torch.save([num_pieces, vocab + 1], f"{chunks_dir}/info.pth")
+
+# random_sample("piano_midi_train", "piano_midi_valid", 0.2)
+to_tensor("piano_midi_train", "piano_tensor_train")
