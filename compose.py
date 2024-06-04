@@ -12,8 +12,8 @@ importlib.reload(model)
 
 utils.create_directory("results")
 
-PATH = "models/maestro-12.pth"
-SAVE_PATH = "results/maestro-12-2.mid"
+PATH = "models/piano-3.pth"
+SAVE_PATH = "results/piano-3-1.mid"
 PROMPTS_PATH = "data/maestro/midi_train/MIDI-UNPROCESSED_01-03_R1_2014_MID--AUDIO_01_R1_2014_wav--3.midi"
 # PROMPTS_PATH = "data/weimar/ArtPepper_Anthropology_FINAL.mid"
 best_model, config = torch.load(PATH, map_location=torch.device('cpu'))

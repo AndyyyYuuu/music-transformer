@@ -147,6 +147,7 @@ for epoch in range(start_epoch, NUM_EPOCHS):
 
     composer.train()
     loading_iter = iter(train_set.loader)
+    total_loss = 0
     for i in utils.progress_iter(range(len(train_set.loader)), "Training"):
 
         x_batch, y_batch = next(loading_iter)
@@ -155,10 +156,12 @@ for epoch in range(start_epoch, NUM_EPOCHS):
 
         # y_pred_flat = y_pred.view(-1, 388)
         loss = loss_function(y_pred, y_batch)
+        total_loss += loss
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         if DO_WANDB: wandb.log({"train_loss_mean": loss})
+    print(f"Train Loss: {total_loss/i}")
 
 
 
@@ -176,7 +179,7 @@ for epoch in range(start_epoch, NUM_EPOCHS):
         if loss < best_loss:
             best_loss = loss
             best_model = composer.state_dict()
-        print(f"Loss: {loss}")
+        print(f"Valid Loss: {loss}")
         if DO_WANDB: wandb.log({"valid_loss_mean": loss})
 
         config["training_info"]["epoch_at"] = epoch
