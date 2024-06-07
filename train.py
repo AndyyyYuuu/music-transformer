@@ -35,7 +35,7 @@ if len(sys.argv) > 2:
 DO_WANDB = "wandb" in sys.argv
 LOAD_FROM_MIDI = False
 
-MODEL_NAME = f"maestro-{MODEL_ID}"
+MODEL_NAME = f"piano-{MODEL_ID}"
 SAVE_PATH = f"models/{MODEL_NAME}.pth"
 
 if torch.cuda.is_available():
@@ -77,7 +77,7 @@ train_set = datasets.MidiDatasetByPiece(
     batch_size=config["data"]["batch_size"],
     seq_length=config["model"]["sequence_length"],
     subset_prop=config["data"]["subset_prop"],
-    sample_size=80,
+    sample_size=config["data"]["train_set_size"],
     save_chunks=False,
     shuffle=True,
     device=device
@@ -89,7 +89,7 @@ valid_set = datasets.MidiDatasetByPiece(
     batch_size=config["data"]["batch_size"],
     seq_length=config["model"]["sequence_length"],
     subset_prop=config["data"]["subset_prop"],
-    sample_size=20,
+    sample_size=config["data"]["valid_set_size"],
     save_chunks=False,
     shuffle=False,
     device=device

@@ -12,15 +12,17 @@ importlib.reload(model)
 
 utils.create_directory("results")
 
-PATH = "models/piano-3.pth"
-SAVE_PATH = "results/piano-3-1.mid"
+INCLUDE_PROMPT = False
+
+PATH = "models/piano-4.pth"
+SAVE_PATH = "results/piano-4-3.mid"
 PROMPTS_PATH = "data/maestro/midi_train/MIDI-UNPROCESSED_01-03_R1_2014_MID--AUDIO_01_R1_2014_wav--3.midi"
 # PROMPTS_PATH = "data/weimar/ArtPepper_Anthropology_FINAL.mid"
 best_model, config = torch.load(PATH, map_location=torch.device('cpu'))
 print(config)
 
 
-TEMPERATURE = 1
+TEMPERATURE = 0.6
 
 # load ascii text and covert to lowercase
 encoded_midi = processor.encode_midi(PROMPTS_PATH)
@@ -29,7 +31,9 @@ prompt_size = config["model"]["sequence_length"]
 gen_size = 2000
 rand_start = np.random.randint(0, len(encoded_midi)-prompt_size)
 prompt = encoded_midi[rand_start:rand_start+prompt_size]
-pattern = prompt.copy()
+pattern = []
+if INCLUDE_PROMPT:
+    pattern = prompt.copy()
 
 NUM_EPOCHS = 64
 TRAIN_SPLIT = 0.8

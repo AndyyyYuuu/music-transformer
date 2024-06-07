@@ -4,11 +4,13 @@ config = {
     "train_split": 0.8,
     "batch_size": 128,
     "data": {
-        "name": "MAESTRO",
+        "name": "GiantMIDI",
         "train_split": 0.8,
         "batch_size": 128,
         "vocab": None,
-        "subset_prop": 0.1
+        "subset_prop": 0.1,
+        "train_set_size": 800,
+        "valid_set_size": 200
     },
     "model": {
         "architecture": "transformer",
