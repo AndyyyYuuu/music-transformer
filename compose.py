@@ -14,8 +14,8 @@ utils.create_directory("results")
 
 INCLUDE_PROMPT = False
 
-PATH = "models/piano-4.pth"
-SAVE_PATH = "results/piano-4-3.mid"
+PATH = "models/piano-5.pth"
+SAVE_PATH = "results/piano-5-1.mid"
 PROMPTS_PATH = "data/maestro/midi_train/MIDI-UNPROCESSED_01-03_R1_2014_MID--AUDIO_01_R1_2014_wav--3.midi"
 # PROMPTS_PATH = "data/weimar/ArtPepper_Anthropology_FINAL.mid"
 best_model, config = torch.load(PATH, map_location=torch.device('cpu'))
@@ -32,8 +32,7 @@ gen_size = 2000
 rand_start = np.random.randint(0, len(encoded_midi)-prompt_size)
 prompt = encoded_midi[rand_start:rand_start+prompt_size]
 pattern = []
-if INCLUDE_PROMPT:
-    pattern = prompt.copy()
+pattern = prompt.copy()
 
 NUM_EPOCHS = 64
 TRAIN_SPLIT = 0.8
@@ -49,10 +48,10 @@ print("\n-- OUTPUT --")
 output = []
 
 with torch.no_grad():
-    for i in range(gen_size):
+    for i in utils.progress_iter(range(gen_size), "generating"):
         x = np.reshape(pattern, (1, len(pattern), 1)) # / float(num_vocab)
-        x = torch.tensor(x, dtype=torch.float32).int().squeeze(-1)
 
+        x = torch.tensor(x, dtype=torch.float32).int().squeeze(-1)
         prediction = composer(x)
         # Model prediction to probability distribution using softmax
         prediction_probs = torch.softmax(prediction/TEMPERATURE, dim=1)
@@ -62,10 +61,14 @@ with torch.no_grad():
         # Get character by index
 
 
-        print(list(prediction_probs))
+        # print(list(prediction_probs))
         output.append(predicted_note)
         # Push generated character to memory
         # pattern.append(int(prediction.argmax()))
         pattern.append(predicted_note)
         pattern.pop(0)
-processor.decode_midi(prompt+output, SAVE_PATH)
+
+if (INCLUDE_PROMPT):
+    processor.decode_midi(prompt+output, SAVE_PATH)
+else:
+    processor.decode_midi(output, SAVE_PATH)

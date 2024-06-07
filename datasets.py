@@ -67,8 +67,8 @@ class MidiDatasetByPiece:
         data_x = []
         data_y = []
         data = []
-        for i in idx:
-            loaded_piece = torch.load(f"{self.chunks_dir}/{i}.midi.pth")
+        for i in utils.progress_iter(range(len(idx)), "Loading data"):
+            loaded_piece = torch.load(f"{self.chunks_dir}/{idx[i]}.midi.pth")
             # Sample a subset of subset_prop
             pair_indices = self.sample_indices(int((len(loaded_piece) - self.seq_length) * self.subset_prop), len(loaded_piece) - self.seq_length)
             for note_i in pair_indices:

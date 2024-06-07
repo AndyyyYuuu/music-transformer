@@ -119,9 +119,9 @@ if os.path.exists(SAVE_PATH):
     past_state_dict = torch.load(SAVE_PATH, map_location=torch.device("cpu"))
     best_model, config = past_state_dict
     train_info = config["training_info"]
-    if train_info["epoch"] < NUM_EPOCHS-1:
+    if train_info["epoch_at"] < NUM_EPOCHS-1:
         best_loss = train_info["min_loss"]
-        start_epoch = train_info["epoch"]+1
+        start_epoch = train_info["epoch_at"]+1
         composer = model.Composer(config["model"])
         composer.load_state_dict(best_model)
         print("LOADED MODEL")
