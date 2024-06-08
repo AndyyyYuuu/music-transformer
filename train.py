@@ -106,8 +106,7 @@ config["model"]["vocab"] = train_set.vocab
 
 composer = model.Composer(config["model"])
 
-optimizer = torch.optim.Adam(composer.parameters())
-loss_function = torch.nn.CrossEntropyLoss(reduction="mean")
+
 
 best_model = None
 best_loss = np.inf
@@ -137,6 +136,9 @@ else:
     print("TRAIN NEW MODEL")
     print(f"Epochs to train: {NUM_EPOCHS}")
     print(f"Save path: {SAVE_PATH}")
+
+optimizer = torch.optim.Adam(composer.parameters())
+loss_function = torch.nn.CrossEntropyLoss(reduction="mean")
 
 composer.to(device)
 valid_set.create_loaders()
