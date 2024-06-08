@@ -113,10 +113,14 @@ best_loss = np.inf
 
 start_epoch = 0
 
+optimizer = torch.optim.Adam(composer.parameters(), lr=config["learning_rate"])
+loss_function = torch.nn.CrossEntropyLoss(reduction="mean")
+
 # Load checkpoint
 if os.path.exists(SAVE_PATH):
     past_state_dict = torch.load(SAVE_PATH, map_location=torch.device("cpu"))
-    best_model, config = past_state_dict
+    best_model, config, optim_state = past_state_dict
+    optimizer.load_state_dict(optim_state)
     train_info = config["training_info"]
     if train_info["epoch_at"] < NUM_EPOCHS-1:
         best_loss = train_info["min_loss"]
@@ -137,8 +141,7 @@ else:
     print(f"Epochs to train: {NUM_EPOCHS}")
     print(f"Save path: {SAVE_PATH}")
 
-optimizer = torch.optim.Adam(composer.parameters())
-loss_function = torch.nn.CrossEntropyLoss(reduction="mean")
+
 
 composer.to(device)
 valid_set.create_loaders()
@@ -187,5 +190,5 @@ for epoch in range(start_epoch, NUM_EPOCHS):
         config["training_info"]["epoch_at"] = epoch
         config["training_info"]["min_loss"] = best_loss
         # checkpoint([best_model, train_set.vocab, best_loss, epoch, SEQ_LENGTH, composer.num_layers, composer.hidden_size, composer.dropout_chance, composer.emb_size, composer.num_heads])
-        checkpoint([best_model, config])
+        checkpoint([best_model, config, optimizer.state_dict()])
 

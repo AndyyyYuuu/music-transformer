@@ -15,7 +15,7 @@ utils.create_directory("results")
 INCLUDE_PROMPT = False
 
 PATH = "models/piano-5.pth"
-SAVE_PATH = "results/piano-5-3.mid"
+SAVE_PATH = "results/piano-5-4.mid"
 PROMPTS_PATH = "data/maestro/midi_train/MIDI-UNPROCESSED_01-03_R1_2014_MID--AUDIO_01_R1_2014_wav--3.midi"
 # PROMPTS_PATH = "data/weimar/ArtPepper_Anthropology_FINAL.mid"
 best_model, config = torch.load(PATH, map_location=torch.device('cpu'))
